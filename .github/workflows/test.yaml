@@ -22,6 +22,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ibiqlik/action-yamllint@v3
 
+  test-windows-installer-unit:
+    name: Test Windows artifact selection
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run fixture tests
+        shell: powershell
+        run: ./tests/Test-GethWindows.ps1
+
   test-latest:
     name: Test Action on ${{ matrix.os }} with "latest"
     strategy:
@@ -44,7 +53,7 @@ jobs:
 
       - name: Verify installation
         run: |
-          echo "Requested version: ${{ matrix.version }}"
+          echo "Requested version: latest"
           echo "Installed version: ${{ steps.install-geth.outputs.version }}"
           geth version
         shell: bash
@@ -52,7 +61,7 @@ jobs:
 
       - name: Verify installation (Windows)
         run: |
-          Write-Host "Requested version: ${{ matrix.version }}"
+          Write-Host "Requested version: latest"
           Write-Host "Installed version: ${{ steps.install-geth.outputs.version }}"
           geth version
         shell: powershell
@@ -65,11 +74,11 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # NOTE: specific version doesn't work with `macos-latest`
+          - macos-latest
           - windows-latest
         version:
-          - v1.16.7
-          - 1.15.3
+          - 1.17.5
+          - v1.17.5
 
     runs-on: ${{ matrix.os }}
 
@@ -95,4 +104,16 @@ jobs:
           if [ "$INSTALLED_VERSION" != "$NORMALIZED_INPUT" ]; then
             echo "Error: Version mismatch. Expected $NORMALIZED_INPUT, got $INSTALLED_VERSION"
             exit 1
+          fi
+
+          geth version
+
+          # Homebrew installs the current release on macOS, so exact binary
+          # matching is asserted on platforms that install versioned archives.
+          if [ "${{ runner.os }}" != "macOS" ]; then
+            REPORTED_VERSION=$(geth version | awk '/^Version:/ { sub(/^v/, "", $2); print $2 }')
+            if [ "$REPORTED_VERSION" != "$NORMALIZED_INPUT" ]; then
+              echo "Error: Binary reports $REPORTED_VERSION, expected $NORMALIZED_INPUT"
+              exit 1
+            fi
           fi
