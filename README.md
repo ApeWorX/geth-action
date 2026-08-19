@@ -20,7 +20,7 @@ steps:
   - uses: actions/checkout@v4
 
   - name: Install Geth
-    uses: your-username/install-geth-action@v1
+    uses: ApeWorX/geth-action@v1
     with:
       version: "latest" # or '1.13.5' or 'v1.13.5'
 
@@ -34,7 +34,7 @@ steps:
 steps:
   - name: Install latest Geth
     id: install-geth
-    uses: your-username/install-geth-action@v1
+    uses: ApeWorX/geth-action@v1
     with:
       version: "latest"
 
@@ -47,7 +47,7 @@ steps:
 ```yaml
 steps:
   - name: Install Geth 1.13.5
-    uses: your-username/install-geth-action@v1
+    uses: ApeWorX/geth-action@v1
     with:
       version: "1.13.5" # Can also use 'v1.13.5'
 ```
@@ -69,7 +69,7 @@ steps:
 
   - name: Install Geth
     id: install
-    uses: your-username/install-geth-action@v1
+    uses: ApeWorX/geth-action@v1
     with:
       version: ${{ matrix.geth-version }}
 
@@ -99,7 +99,7 @@ steps:
 
   - name: Install Geth (if not cached)
     if: steps.cache-geth.outputs.cache-hit != 'true'
-    uses: your-username/install-geth-action@v1
+    uses: ApeWorX/geth-action@v1
     with:
       version: "1.13.5"
 ```
@@ -113,7 +113,7 @@ steps:
   - uses: actions/checkout@v4
 
   - name: Install latest Geth
-    uses: your-username/install-geth-action@v1
+    uses: ApeWorX/geth-action@v1
     with:
       version: "latest"
 
@@ -197,7 +197,7 @@ Use the output in subsequent steps:
 steps:
   - name: Install Geth
     id: geth
-    uses: your-username/install-geth-action@v1
+    uses: ApeWorX/geth-action@v1
     with:
       version: "latest"
 
@@ -221,7 +221,8 @@ steps:
 
 1. The action detects the runner's operating system
 2. Installs Geth:
-   - **Linux/Windows**: Downloads the appropriate binary from official sources (Blob storage or GitHub releases)
+   - **Linux**: Downloads the appropriate binary from official sources
+   - **Windows**: Queries the official Geth build container and downloads the exact matching archive. Windows archive names include an eight-character build commit, so the action discovers the filename instead of guessing a hashless URL.
    - **macOS**: Installs via Homebrew (`brew install ethereum`)
 3. Extracts the archive (Linux/Windows)
 4. Installs the binary to:
@@ -269,8 +270,8 @@ If `geth` is not found after installation on Windows:
 To contribute or modify this action:
 
 1. Fork the repository
-2. Make your changes to `action.yml`
-3. Test using the provided workflow in `.github/workflows/test.yml`
+2. Make your changes to `action.yaml`
+3. Test using the provided workflow in `.github/workflows/test.yaml`
 4. Submit a pull request
 
 ### Testing Locally
@@ -280,11 +281,10 @@ You can test the installation scripts locally:
 ```bash
 # Linux/macOS
 VERSION=1.13.5
-# Run the installation commands from the action.yml file
+# Run the installation commands from the action.yaml file
 
-# Windows (PowerShell)
-$GethVersion = "1.13.5"
-# Run the PowerShell installation commands
+# Windows installer fixture tests (PowerShell)
+./tests/Test-GethWindows.ps1
 ```
 
 ## License
@@ -297,7 +297,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Issues
 
-If you encounter any problems or have suggestions, please [open an issue](https://github.com/your-username/install-geth-action/issues).
+If you encounter any problems or have suggestions, please [open an issue](https://github.com/ApeWorX/geth-action/issues).
 
 ## Credits
 

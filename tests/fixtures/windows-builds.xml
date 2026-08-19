@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EnumerationResults>
+  <Blobs>
+    <Blob><Name>geth-alltools-windows-amd64-1.17.5-aaaaaaaa.zip</Name></Blob>
+    <Blob><Name>geth-windows-386-1.17.5-bbbbbbbb.zip</Name></Blob>
+    <Blob><Name>geth-windows-amd64-1.17.50-cccccccc.zip</Name></Blob>
+    <Blob><Name>geth-windows-amd64-1.17.5-dddddddd.exe</Name></Blob>
+    <Blob><Name>geth-windows-amd64-1.17.5-3868a49b.zip</Name></Blob>
+    <Blob><Name>geth-windows-amd64-1.17.5-3868a49b.zip.asc</Name></Blob>
+  </Blobs>
+</EnumerationResults>
