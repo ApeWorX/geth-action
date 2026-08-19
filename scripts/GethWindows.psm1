@@ -48,6 +48,29 @@ function Find-GethWindowsBlobName {
     return $null
 }
 
+function ConvertTo-GethBuildListing {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Content
+    )
+
+    # Windows PowerShell 5 may decode a UTF-8 BOM as the three visible
+    # Windows-1252 characters "ï»¿". Either form makes the XML cast fail.
+    $Content = $Content.TrimStart([char] 0xFEFF)
+    $misdecodedBom = -join @([char] 0x00EF, [char] 0x00BB, [char] 0x00BF)
+    if ($Content.StartsWith($misdecodedBom)) {
+        $Content = $Content.Substring($misdecodedBom.Length)
+    }
+
+    try {
+        return [xml] $Content
+    }
+    catch {
+        throw "The Geth build listing response was not valid XML. $($_.Exception.Message)"
+    }
+}
+
 function Expand-GethWindowsArchive {
     [CmdletBinding()]
     param(
@@ -96,7 +119,7 @@ function Install-GethWindows {
         Write-Host "Discovering the official Windows artifact for Geth $Version..."
         try {
             $response = Invoke-WebRequest -Uri $listingEndpoint -UseBasicParsing -ErrorAction Stop
-            [xml] $listing = $response.Content
+            [xml] $listing = ConvertTo-GethBuildListing -Content $response.Content
             $blobName = Find-GethWindowsBlobName -Listing $listing -Version $Version
         }
         catch {
@@ -116,7 +139,14 @@ function Install-GethWindows {
         $installedExe = Join-Path $InstallDir 'geth.exe'
         Copy-Item -LiteralPath $sourceExe -Destination $installedExe -Force
 
-        $versionOutput = & $installedExe version 2>&1 | Out-String
+        # Capture stdout only. Windows PowerShell 5 turns redirected native
+        # stderr into ErrorRecord objects, which become terminating errors when
+        # the runner sets ErrorActionPreference to Stop.
+        $versionOutput = & $installedExe version | Out-String
+        if ($LASTEXITCODE -ne 0) {
+            throw "Installed geth.exe exited with code $LASTEXITCODE while reporting its version."
+        }
+
         Write-Host $versionOutput.TrimEnd()
         $reportedVersion = [regex]::Match($versionOutput, '(?m)^Version:\s*v?([0-9]+\.[0-9]+\.[0-9]+)').Groups[1].Value
         if ($reportedVersion -ne $Version) {
@@ -134,4 +164,4 @@ function Install-GethWindows {
     }
 }
 
-Export-ModuleMember -Function ConvertTo-GethVersion, Find-GethWindowsBlobName, Expand-GethWindowsArchive, Install-GethWindows
+Export-ModuleMember -Function ConvertTo-GethVersion, ConvertTo-GethBuildListing, Find-GethWindowsBlobName, Expand-GethWindowsArchive, Install-GethWindows

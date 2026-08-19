@@ -111,7 +111,7 @@ jobs:
           # Homebrew installs the current release on macOS, so exact binary
           # matching is asserted on platforms that install versioned archives.
           if [ "${{ runner.os }}" != "macOS" ]; then
-            REPORTED_VERSION=$(geth version | awk '/^Version:/ { sub(/^v/, "", $2); print $2 }')
+            REPORTED_VERSION=$(geth version | awk '/^Version:/ { sub(/^v/, "", $2); split($2, parts, "-"); print parts[1] }')
             if [ "$REPORTED_VERSION" != "$NORMALIZED_INPUT" ]; then
               echo "Error: Binary reports $REPORTED_VERSION, expected $NORMALIZED_INPUT"
               exit 1

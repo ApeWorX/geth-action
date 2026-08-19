@@ -63,10 +63,6 @@ runs:
         echo "version=$GETH_VERSION" >> $GITHUB_OUTPUT
         echo "version_with_v=v$GETH_VERSION" >> $GITHUB_OUTPUT
 
-        # Also set environment variable for use in subsequent steps
-        echo "GETH_VERSION=$GETH_VERSION" >> $GITHUB_ENV
-        echo "GETH_VERSION_WITH_V=v$GETH_VERSION" >> $GITHUB_ENV
-
     - name: Install Geth on Linux
       if: runner.os == 'Linux'
       shell: bash

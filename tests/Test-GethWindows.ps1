@@ -24,9 +24,19 @@ function Assert-Throws([scriptblock] $Script, [string] $Pattern, [string] $Messa
 Assert-Equal '1.17.5' (ConvertTo-GethVersion -Version 'v1.17.5') 'Leading-v normalization failed.'
 Assert-Equal '1.17.5' (ConvertTo-GethVersion -Version 'latest' -LatestVersion 'v1.17.5') 'Latest normalization failed.'
 
-[xml] $listing = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'fixtures/windows-builds.xml') -Raw
+$listingContent = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'fixtures/windows-builds.xml') -Raw
+[xml] $listing = ConvertTo-GethBuildListing -Content $listingContent
 $selected = Find-GethWindowsBlobName -Listing $listing -Version '1.17.5'
 Assert-Equal 'geth-windows-amd64-1.17.5-3868a49b.zip' $selected 'Exact artifact selection failed.'
+
+$unicodeBomListing = ConvertTo-GethBuildListing -Content (([char] 0xFEFF) + $listingContent)
+Assert-Equal 'geth-windows-amd64-1.17.5-3868a49b.zip' (Find-GethWindowsBlobName -Listing $unicodeBomListing -Version '1.17.5') 'Unicode BOM handling failed.'
+
+$misdecodedBom = -join @([char] 0x00EF, [char] 0x00BB, [char] 0x00BF)
+$windowsPowerShellListing = ConvertTo-GethBuildListing -Content ($misdecodedBom + $listingContent)
+Assert-Equal 'geth-windows-amd64-1.17.5-3868a49b.zip' (Find-GethWindowsBlobName -Listing $windowsPowerShellListing -Version '1.17.5') 'Windows PowerShell BOM handling failed.'
+
+Assert-Throws { ConvertTo-GethBuildListing -Content 'not XML' } 'was not valid XML' 'Invalid listing check failed.'
 
 [xml] $noMatch = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'fixtures/windows-builds-no-match.xml') -Raw
 Assert-Equal $null (Find-GethWindowsBlobName -Listing $noMatch -Version '1.17.5') 'Unrelated blobs should not match.'
